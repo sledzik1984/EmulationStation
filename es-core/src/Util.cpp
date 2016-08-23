@@ -26,7 +26,7 @@ std::string strToUpper(const std::string& str)
 }
 
 
-#if _MSC_VER < 1800
+#if defined(_WIN32) && _MSC_VER < 1800
 float round(float num)
 {
 	return (float)((int)(num + 0.5f));
@@ -100,20 +100,6 @@ fs::path resolvePath(const fs::path& path, const fs::path& relativeTo, bool allo
 	return path;
 }
 
-fs::path removeCommonPathUsingStrings(const fs::path& path, const fs::path& relativeTo, bool& contains)
-{
-	std::string pathStr = path.c_str();
-	std::string relativeToStr = relativeTo.c_str();
-	if (pathStr.find_first_of(relativeToStr) == 0) {
-		contains = true;
-		return pathStr.substr(relativeToStr.size() + 1);
-	}
-	else {
-		contains = false;
-		return path;
-	}
-}
-
 // example: removeCommonPath("/home/pi/roms/nes/foo/bar.nes", "/home/pi/roms/nes/") returns "foo/bar.nes"
 fs::path removeCommonPath(const fs::path& path, const fs::path& relativeTo, bool& contains)
 {
@@ -124,8 +110,7 @@ fs::path removeCommonPath(const fs::path& path, const fs::path& relativeTo, bool
 		return path;
 	}
 
-	// if it's a symlink we don't want to apply fs::canonical on it, otherwise we'll lose the current parent_path
-	fs::path p = (fs::is_symlink(path) ? fs::canonical(path.parent_path()) / path.filename() : fs::canonical(path));
+	fs::path p = fs::canonical(path);
 	fs::path r = fs::canonical(relativeTo);
 
 	if(p.root_path() != r.root_path())
@@ -203,3 +188,4 @@ boost::posix_time::ptime string_to_ptime(const std::string& str, const std::stri
 
 	return time;
 }
+
